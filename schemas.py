@@ -85,3 +85,9 @@ class DashboardStats(BaseModel):
     in_progress_tasks: int
     completed_tasks: int
     overdue_tasks_count: int
+
+#token schema
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
