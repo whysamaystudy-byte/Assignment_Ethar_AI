@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import models
 from database import engine
-from routers import auth, users
+from routers import auth, users, dashboard
 
 models.Base.metadata.create_all(bind=engine)
 #all the tables written in models.py with base as the parent class
@@ -12,3 +12,4 @@ app = FastAPI()
 
 app.include_router(auth.router, prefix="/auth")
 app.include_router(users.router)
+app.include_router(dashboard.router)
