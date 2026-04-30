@@ -1,75 +1,24 @@
-from datetime import timedelta, datetime, timezone
-from typing import Annotated, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from jose import JWTError, jwt
-
-from database import SessionLocal
-from models import User
-
-from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+from typing import Annotated
+from jose import JWTError
+
+import models, schemas
+from database import get_db
+from security import hash_password, verify_password, create_access_token, verify_token
 
 router = APIRouter(
-    prefix='/auth',
-    tags=['auth']
+    tags=['Authentication']
 )
-
-SECRET_KEY = '123456789'
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    to_encode = data.copy()
-    
-    # Calculate expiration time
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    
-    # FIX 1: Convert expire to Unix timestamp and include 'sub' claim
-    to_encode.update({
-        "exp": expire.timestamp(), # Use timestamp format
-        "sub": str(data.get("user_id")) # Use 'sub' claim for user ID (from the expected data)
-    })
-    
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-def verify_token(token: str, credentials_exception: Any) -> int:
-    try: 
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        
-        # We expect the user ID to be stored under the 'sub' claim
-        user_id_str: str = payload.get("sub") 
-        
-        if user_id_str is None:
-            # Token is valid but missing the user ID claim
-            raise credentials_exception
-            
-        return int(user_id_str)
-        
-    except (JWTError, ValueError):
-        # Catches JWT errors (expired, invalid signature) and ValueError if 'sub' isn't convertible to int
-        raise credentials_exception
-
-from database import get_db
-import models, schemas
 
 CREDENTIALS_EXCEPTION = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Could not validate credentials",
     headers={"WWW-Authenticate": "Bearer"},
 )
+
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 
 db_dependency = Annotated[Session, Depends(get_db)]
 #to delcare/create db
@@ -135,7 +84,7 @@ async def login_for_access_token(
         # Raise generic 401 for security
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
      

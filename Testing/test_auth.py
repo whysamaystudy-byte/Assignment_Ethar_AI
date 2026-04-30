@@ -101,7 +101,7 @@ def test_login_wrong_password(client: TestClient):
     response = client.post("/auth/token", data=form_data)
     
     assert response.status_code == 401
-    assert response.json()["detail"] == "Incorrect username or password"
+    assert response.json()["detail"] == "incorrect username or password"
     # Check for WWW-Authenticate header compliance
     assert response.headers["www-authenticate"] == "Bearer"
 
