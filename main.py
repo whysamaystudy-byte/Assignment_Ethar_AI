@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import models
 from database import engine
-from routers import auth, users, dashboard, projects
+from routers import auth, users, dashboard, projects, tasks
 
 models.Base.metadata.create_all(bind=engine)
 #all the tables written in models.py with base as the parent class
@@ -14,3 +14,4 @@ app.include_router(auth.router, prefix="/auth")
 app.include_router(users.router)
 app.include_router(dashboard.router)
 app.include_router(projects.router)
+app.include_router(tasks.router)

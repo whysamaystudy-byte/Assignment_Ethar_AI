@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -26,8 +26,7 @@ class UserOut(UserBase):
     id: int
     is_active: bool = True 
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
     #when non dictionary object is passed, look for attributes on the object and not as key in dict ex: user.EmailStr
 
 #project schema
@@ -43,30 +42,29 @@ class ProjectOut(ProjectBase):
     id: int
     owner_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 
 #task schema
 class TaskBase(BaseModel):
     title: str
-    description: str
+    description: Optional[str] = None
     priority: int
-    status: str = "pending"
-    due_date: datetime
+    status: str = "Pending"
+    due_date: Optional[datetime] = None
 
 class TaskCreate(TaskBase):
     project_id: int
     assignee_id: int
 
 class TaskUpdate(BaseModel):
-    title: str
-    description: str
-    priority: int
-    status: str
-    due_date: datetime
-    assignee_id: int
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[int] = None
+    status: Optional[str] = None
+    due_date: Optional[datetime] = None
+    assignee_id: Optional[int] = None
 
 
 class TaskOut(TaskBase):
@@ -74,8 +72,7 @@ class TaskOut(TaskBase):
     project_id: int
     assignee_id: Optional[int]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 #dashboard schema
