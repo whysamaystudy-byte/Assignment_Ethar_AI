@@ -104,6 +104,9 @@ async function apiCall(endpoint, options = {}) {
         } catch(e) {}
         throw new Error(errorMsg);
     }
+    if (response.status === 204) {
+        return null;
+    }
     return response.json();
 }
 
