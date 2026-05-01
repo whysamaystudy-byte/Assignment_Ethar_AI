@@ -200,7 +200,10 @@ async function loadProjects() {
             const el = document.createElement('div');
             el.className = 'project-card';
             el.innerHTML = `
-                <h3>${p.title}</h3>
+                <div class="card-header">
+                    <h3>${p.title}</h3>
+                    <button class="delete-btn" onclick="deleteProject(${p.id})">Delete</button>
+                </div>
                 <p>${p.description || 'No description provided.'}</p>
             `;
             container.appendChild(el);
@@ -249,12 +252,13 @@ async function loadTasks() {
                     <h4>${t.title}</h4>
                     <span class="task-meta">${t.description || ''} • Priority: ${t.priority}</span>
                 </div>
-                <div class="task-actions">
+                <div class="task-actions" style="display: flex; gap: 0.5rem; align-items: center;">
                     <select class="status-select status-${statusClass}" onchange="updateTaskStatus(${t.id}, this.value)">
                         <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>Pending</option>
                         <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
                         <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>Completed</option>
                     </select>
+                    <button class="delete-btn" onclick="deleteTask(${t.id})">Delete</button>
                 </div>
             `;
             container.appendChild(el);
@@ -275,6 +279,28 @@ async function updateTaskStatus(taskId, newStatus) {
     } catch (err) {
         alert("Failed to update status: " + err.message);
         loadTasks(); // revert dropdown on error
+    }
+}
+
+async function deleteProject(projectId) {
+    if (!confirm("Are you sure you want to delete this project? All associated tasks will also be deleted.")) return;
+    try {
+        await apiCall(`/projects/${projectId}`, { method: 'DELETE' });
+        loadProjects();
+        loadDashboard();
+    } catch (err) {
+        alert("Failed to delete project: " + err.message);
+    }
+}
+
+async function deleteTask(taskId) {
+    if (!confirm("Are you sure you want to delete this task?")) return;
+    try {
+        await apiCall(`/tasks/${taskId}`, { method: 'DELETE' });
+        loadTasks();
+        loadDashboard();
+    } catch (err) {
+        alert("Failed to delete task: " + err.message);
     }
 }
 

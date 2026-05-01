@@ -53,3 +53,22 @@ async def get_project(
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
     return project
+
+@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_project(
+    project_id: int,
+    user: current_user_dependency,
+    db: db_dependency
+):
+    require_admin(user)
+    
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        
+    # Delete associated tasks first
+    db.query(models.Task).filter(models.Task.project_id == project_id).delete()
+    
+    db.delete(project)
+    db.commit()
+    return
