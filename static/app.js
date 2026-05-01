@@ -48,7 +48,8 @@ function navigate(viewName) {
     const titles = {
         'dashboard': 'Dashboard',
         'projects': 'Projects',
-        'tasks': 'Tasks'
+        'tasks': 'Tasks',
+        'profile': 'Profile'
     };
     document.getElementById('current-view-title').textContent = titles[viewName];
 
@@ -56,6 +57,7 @@ function navigate(viewName) {
     if (viewName === 'dashboard') loadDashboard();
     if (viewName === 'projects') loadProjects();
     if (viewName === 'tasks') loadTasks();
+    if (viewName === 'profile') loadProfile();
 }
 
 // Modals
@@ -369,5 +371,58 @@ async function handleCreateTask(e) {
         loadTasks();
     } catch (err) {
         alert(err.message);
+    }
+}
+
+// Profile
+async function loadProfile() {
+    try {
+        const user = await apiCall('/users/me');
+        document.getElementById('profile-email').value = user.email || '';
+        document.getElementById('profile-phone').value = user.phone_number || '';
+    } catch (err) {
+        console.error('Failed to load profile:', err);
+    }
+}
+
+async function handleUpdateProfile(e) {
+    e.preventDefault();
+    const email = document.getElementById('profile-email').value;
+    const phone_number = document.getElementById('profile-phone').value;
+    try {
+        await apiCall('/users/me', {
+            method: 'PUT',
+            body: JSON.stringify({ email, phone_number })
+        });
+        alert('Profile updated successfully.');
+    } catch (err) {
+        alert('Failed to update profile: ' + err.message);
+    }
+}
+
+async function handleChangePassword(e) {
+    e.preventDefault();
+    const old_password = document.getElementById('profile-old-pwd').value;
+    const new_password = document.getElementById('profile-new-pwd').value;
+    try {
+        await apiCall('/users/me/password', {
+            method: 'PUT',
+            body: JSON.stringify({ old_password, new_password })
+        });
+        alert('Password changed successfully.');
+        document.getElementById('change-password-form').reset();
+    } catch (err) {
+        alert('Failed to change password: ' + err.message);
+    }
+}
+
+async function handleDeleteAccount() {
+    if (!confirm('Are you absolutely sure you want to delete your account? This cannot be undone.')) return;
+    try {
+        await apiCall('/users/me', { method: 'DELETE' });
+        alert('Account deleted.');
+        handleLogout();
+    } catch (err) {
+        alert('Failed to delete account: ' + err.message);
     }
 }
